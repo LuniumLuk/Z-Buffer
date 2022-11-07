@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+.vscode/
+
+# My Excutable
+out
+main
+
+# Results
+*.jpg
+*.png
