@@ -35,7 +35,10 @@
 
 # My Excutable
 out
+viewer
 main
+*.dSYM/
+build/
 
 # Results
 *.jpg

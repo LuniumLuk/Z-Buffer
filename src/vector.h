@@ -1,15 +1,105 @@
 #pragma once
 
+#include <algorithm>
+
 template<typename T>
 struct Vector2 {
     using dataType = T;
     dataType x, y;
+
+    T& operator[] (size_t i) {
+        assert(i < 2);
+        return ((T*)&x)[i];
+    }
+
+    T operator[] (size_t i) const {
+        assert(i < 2);
+        return ((T*)&x)[i];
+    }
+
+    static Vector2<T> min(Vector2<T> const& first, Vector2<T> const& second) {
+        return Vector2<T>{
+            std::min(first.x, second.x),
+            std::min(first.y, second.y),
+        };
+    }
+
+    static Vector2<T> max(Vector2<T> const& first, Vector2<T> const& second) {
+        return Vector2<T>{
+            std::max(first.x, second.x),
+            std::max(first.y, second.y),
+        };
+    }
+
+    T dot(Vector2 const& other) {
+        return x * other.x + y * other.y;
+    }
 };
+
+template<typename T>
+struct Vector4;
 
 template<typename T>
 struct Vector3 {
     using dataType = T;
     dataType x, y, z;
+
+    Vector3() = default;
+    Vector3(T _x, T _y, T _z)
+        : x(_x)
+        , y(_y)
+        , z(_z) {}
+    Vector3(Vector4<T> const& v)
+        : x(v.x)
+        , y(v.y)
+        , z(v.z) {}
+
+    T& operator[] (size_t i) {
+        assert(i < 3);
+        return ((T*)&x)[i];
+    }
+
+    Vector3 operator- (Vector3 const& other) const {
+        return Vector3{
+            x - other.x,
+            y - other.y,
+            z - other.z,
+        };
+    }
+    Vector3 operator+ (Vector3 const& other) const {
+        return Vector3{
+            x + other.x,
+            y + other.y,
+            z + other.z,
+        };
+    }
+
+    T operator[] (size_t i) const {
+        assert(i < 3);
+        return ((T*)&x)[i];
+    }
+
+    T dot(Vector3 const& other) const {
+        return x * other.x + y * other.y + z * other.z;
+    }
+
+    Vector3 cross(Vector3 const& other) const {
+        return Vector3{
+            y * other.z - z * other.y,
+            z * other.x - x * other.z,
+            x * other.y - y * other.x,
+        };
+    }
+
+    Vector3 normalized() const {
+        T magnitude = (*this).dot(*this);
+        if (magnitude == 0) return (*this);
+        return Vector3{
+            x / magnitude,
+            y / magnitude,
+            z / magnitude,
+        };
+    }
 };
 
 template<typename T>
@@ -19,6 +109,32 @@ struct Vector4 {
     union { dataType y, g; };
     union { dataType z, b; };
     union { dataType w, a; };
+
+    Vector4() = default;
+    Vector4(T _x, T _y, T _z, T _w)
+        : x(_x)
+        , y(_y)
+        , z(_z)
+        , w(_w) {}
+    Vector4(Vector3<T> const& v, T _w)
+        : x(v.x)
+        , y(v.y)
+        , z(v.z)
+        , w(_w) {}
+
+    T& operator[] (size_t i) {
+        assert(i < 4);
+        return ((T*)&x)[i];
+    }
+
+    T operator[] (size_t i) const {
+        assert(i < 4);
+        return ((T*)&x)[i];
+    }
+
+    T dot(Vector4 const& other) {
+        return x * other.x + y * other.y + z * other.z + w * other.w;
+    }
 };
 
 using float2 = Vector2<float>;

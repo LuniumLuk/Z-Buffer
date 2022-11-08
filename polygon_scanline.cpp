@@ -7,34 +7,16 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "thirdparty/stb_image_write.h"
 #include "src/vector.h"
+#include "src/utils.h"
 
 // This program is a demo of Polygon Scanline Rasterization Algorithm
 // using Sorted Edge Table and Active Edge List structure
 // this algorithm runs by two steps:
 //  1. generate sorted edge table
 //  2. fill the polygon using active edge list
-
+// -------------------------------------------------------
 // to compile and run in vscode in MacOS:
 // g++ -std=c++17 -Og polygon_scanline.cpp -o out && ./out
-
-// Convert float value in scene to integer value in image space.
-inline int ftoi(float x) {
-    // Difference of (int)std::floor(x) and static_cast<int>(x):
-    // - (int)std::floor(x) cast x toward -INFINITY
-    // - static_cast<int>(x) cast x toward 0
-    // Although we ignore negative value in image space, -0.5 will still be cast to 0
-    // which is not correct theoretically.
-    return std::floor(x);
-}
-
-// Convert integer value in image space to float value in scene.
-inline float itof(int x) {
-    return x + 0.5f;
-}
-
-inline float clamp(float x, float min, float max) {
-    return std::max(min, std::min(max, x));
-}
 
 struct Edge {
     long y_max;
