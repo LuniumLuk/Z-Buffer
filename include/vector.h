@@ -1,5 +1,8 @@
 #pragma once
 
+// A relatively simple implementation of 3D vector math.
+// Vectors are column vectors.
+
 #include <algorithm>
 
 template<typename T>
@@ -9,12 +12,25 @@ struct Vector2 {
 
     T& operator[] (size_t i) {
         assert(i < 2);
-        return ((T*)&x)[i];
+        return (&x)[i];
     }
 
     T operator[] (size_t i) const {
         assert(i < 2);
-        return ((T*)&x)[i];
+        return (&x)[i];
+    }
+
+    Vector2 operator- (Vector2 const& other) const {
+        return Vector2{
+            x - other.x,
+            y - other.y,
+        };
+    }
+    Vector2 operator+ (Vector2 const& other) const {
+        return Vector2{
+            x + other.x,
+            y + other.y,
+        };
     }
 
     static Vector2<T> min(Vector2<T> const& first, Vector2<T> const& second) {
@@ -56,7 +72,12 @@ struct Vector3 {
 
     T& operator[] (size_t i) {
         assert(i < 3);
-        return ((T*)&x)[i];
+        return (&x)[i];
+    }
+
+    T operator[] (size_t i) const {
+        assert(i < 3);
+        return (&x)[i];
     }
 
     Vector3 operator- (Vector3 const& other) const {
@@ -72,11 +93,6 @@ struct Vector3 {
             y + other.y,
             z + other.z,
         };
-    }
-
-    T operator[] (size_t i) const {
-        assert(i < 3);
-        return ((T*)&x)[i];
     }
 
     T dot(Vector3 const& other) const {
@@ -110,7 +126,11 @@ struct Vector4 {
     union { dataType z, b; };
     union { dataType w, a; };
 
-    Vector4() = default;
+    Vector4()
+        : x(static_cast<T>(0))
+        , y(static_cast<T>(0))
+        , z(static_cast<T>(0))
+        , w(static_cast<T>(0)) {}
     Vector4(T _x, T _y, T _z, T _w)
         : x(_x)
         , y(_y)
@@ -122,14 +142,45 @@ struct Vector4 {
         , z(v.z)
         , w(_w) {}
 
+    Vector4(Vector4 const& other)
+        : x(other.x)
+        , y(other.y)
+        , z(other.z)
+        , w(other.w) {}
+
+    Vector4& operator=(Vector4 const& other) {
+        x = other.x;
+        y = other.y;
+        z = other.z;
+        w = other.w;
+        return (*this);
+    }
+
     T& operator[] (size_t i) {
         assert(i < 4);
-        return ((T*)&x)[i];
+        return (&x)[i];
     }
 
     T operator[] (size_t i) const {
         assert(i < 4);
-        return ((T*)&x)[i];
+        return (&x)[i];
+    }
+
+    Vector4 operator- (Vector4 const& other) const {
+        return Vector4{
+            x - other.x,
+            y - other.y,
+            z - other.z,
+            w - other.w,
+        };
+    }
+    Vector4 operator+ (Vector4 const& other) const {
+        return Vector4{
+            x + other.x,
+            y + other.y,
+            z + other.z,
+            w + other.w,
+        };
     }
 
     T dot(Vector4 const& other) {

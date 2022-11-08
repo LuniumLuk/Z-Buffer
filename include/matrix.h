@@ -1,5 +1,8 @@
 #pragma once
 
+// A relatively simple implementation of 3D matrix math.
+// Matrix is implemented as column major.
+
 #include "vector.h"
 #include <cmath>
 
@@ -9,7 +12,6 @@ struct Matrix4 {
     Vector4<T> col[4];
 
     Matrix4() = default;
-
     Matrix4(
         T m00, T m01, T m02, T m03, 
         T m10, T m11, T m12, T m13, 
@@ -19,7 +21,18 @@ struct Matrix4 {
               {m01, m11, m21, m31},
               {m02, m12, m22, m32},
               {m03, m13, m23, m33}} {}
-    
+
+    Matrix4(Matrix4 const& other)
+        : col{ other.col[0], other.col[1], other.col[2], other.col[3] } {}
+
+    Matrix4& operator=(Matrix4 const& other) {
+        col[0] = other.col[0];
+        col[1] = other.col[1];
+        col[2] = other.col[2];
+        col[3] = other.col[3];
+        return (*this);
+    }
+
     Vector4<T>& operator[] (size_t c) {
         return col[c];
     }
@@ -29,6 +42,7 @@ struct Matrix4 {
     }
     
     Vector4<T> row(size_t r) const {
+        assert(r < 4);
         return Vector4<T>{
             col[0][r],
             col[1][r],
@@ -37,51 +51,40 @@ struct Matrix4 {
         };
     }
 
-    Matrix4 operator*(Matrix4 const& other) const {
+    static Matrix4 identity() {
         return Matrix4{
-            row(0).dot(other.col[0]),
-            row(0).dot(other.col[1]),
-            row(0).dot(other.col[2]),
-            row(0).dot(other.col[3]),
-            row(1).dot(other.col[0]),
-            row(1).dot(other.col[1]),
-            row(1).dot(other.col[2]),
-            row(1).dot(other.col[3]),
-            row(2).dot(other.col[0]),
-            row(2).dot(other.col[1]),
-            row(2).dot(other.col[2]),
-            row(2).dot(other.col[3]),
-            row(3).dot(other.col[0]),
-            row(3).dot(other.col[1]),
-            row(3).dot(other.col[2]),
-            row(3).dot(other.col[3]),
+            1.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f,
         };
     }
-
-    Vector4<T> operator*(Vector4<T> const& other) const {
-        return Vector4<T>{
-            row(0).dot(other),
-            row(1).dot(other),
-            row(2).dot(other),
-            row(3).dot(other),
-        };
-    }
-
-    static Matrix4 IDENTITY;
 };
 
 template<typename T>
-Matrix4<T> Matrix4<T>::IDENTITY = {
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    0, 0, 0, 1,
-};
+Matrix4<T> operator*(Matrix4<T> const& first, Matrix4<T> const& second) {
+    Matrix4<T> m;
+    m.col[0] = first * second.col[0];
+    m.col[1] = first * second.col[1];
+    m.col[2] = first * second.col[2];
+    m.col[3] = first * second.col[3];
+    return m;
+}
+
+template<typename T>
+Vector4<T> operator*(Matrix4<T> const& first, Vector4<T> const& second) {
+    return Vector4<T>{
+        first.row(0).dot(second),
+        first.row(1).dot(second),
+        first.row(2).dot(second),
+        first.row(3).dot(second),
+    };
+}
 
 using float4x4 = Matrix4<float>;
 using int4x4 = Matrix4<long>;
 
-inline float4x4 projection(float x = 0.1, float near = 0.1, float far = 100.0) {
+float4x4 projection(float x = 0.1, float near = 0.1, float far = 100.0) {
     float4x4 m;
     m[0][0] = near / x;
     m[1][1] = near / x;
@@ -91,7 +94,7 @@ inline float4x4 projection(float x = 0.1, float near = 0.1, float far = 100.0) {
     return m;
 }
 
-inline float4x4 translate(float x, float y, float z) {
+float4x4 translate(float x, float y, float z) {
     float4x4 m;
     m[0][0] = 1;
     m[1][1] = 1;
@@ -103,23 +106,23 @@ inline float4x4 translate(float x, float y, float z) {
     return m;
 }
 
-inline float4x4 rotateX(float angle) {
-    float4x4 m;
+float4x4 rotateX(float angle) {
     float sin = std::sinf(angle);
     float cos = std::cosf(angle);
+    float4x4 m;
     m[0][0] = 1;
     m[1][1] = cos;
     m[2][1] = sin;
     m[1][2] = -sin;
     m[2][2] = cos;
     m[3][3] = 1;
-    return m;
+    return m;  
 }
 
-inline float4x4 rotateY(float angle) {
-    float4x4 m;
+float4x4 rotateY(float angle) {
     float sin = std::sinf(angle);
     float cos = std::cosf(angle);
+    float4x4 m;
     m[0][0] = cos;
     m[2][0] = sin;
     m[1][1] = 1;

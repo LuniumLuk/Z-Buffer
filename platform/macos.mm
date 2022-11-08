@@ -2,7 +2,7 @@
 #include <mach-o/dyld.h>
 #include <mach/mach_time.h>
 #include <unistd.h>
-#include "platform.h"
+#include "../include/platform.h"
 
 using namespace LuGL;
 

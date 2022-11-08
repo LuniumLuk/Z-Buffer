@@ -3,7 +3,7 @@
 #if defined(_WIN32) || defined(_WIN64) // just to get rid of warning in MacOS
 #include <windows.h>
 #include <utility>
-#include "platform.h"
+#include "../include/platform.h"
 
 // reference : http://www.winprog.org/tutorial/simple_window.html
 

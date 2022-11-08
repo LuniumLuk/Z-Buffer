@@ -6,8 +6,8 @@
 #include <algorithm>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "thirdparty/stb_image_write.h"
-#include "src/vector.h"
-#include "src/utils.h"
+#include "include/vector.h"
+#include "include/utils.h"
 
 // This program is a demo of Polygon Scanline Rasterization Algorithm
 // using Sorted Edge Table and Active Edge List structure

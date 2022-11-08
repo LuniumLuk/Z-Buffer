@@ -4,10 +4,10 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
-#include "src/vector.h"
-#include "src/matrix.h"
-#include "src/image.h"
-#include "src/utils.h"
+#include "include/vector.h"
+#include "include/matrix.h"
+#include "include/image.h"
+#include "include/utils.h"
 
 // This program is a demo of Scanline Z-buffer Algorithm
 // -------------------------------------------------------
@@ -256,13 +256,18 @@ void printMatrix(float4x4 const& m) {
 }
 
 int main() {
+
+    printMatrix(projection());
+
+    return 0;
+
     float w = 200;
     float h = 200;
 
-    float4x4 model = float4x4::IDENTITY;
-    float4x4 view = float4x4::IDENTITY;
-    view = rotateY(PI_div_three()) * view;
-    view = rotateX(PI_div_three()) * view;
+    float4x4 model = float4x4::identity();
+    float4x4 view = float4x4::identity();
+    view = rotateY(PI() * 0.1) * view;
+    // view = rotateX(PI() * 0.02) * view;
     float4x4 proj = projection();
 
     float4x4 mvp = proj * view * model;
@@ -270,6 +275,12 @@ int main() {
     // float4x4 mvp = proj * model;
 
     auto vs = toClipSpace(vertices, mvp);
+    for (int i = 0; i < vs.size(); ++i) {
+        std::cout << vs[i][0] << ", " 
+                  << vs[i][1] << ", " 
+                  << vs[i][2] << ", " 
+                  << vs[i][3] << "\n"; 
+    }
     auto triangles = toScreenSpaceTriangles(vs, colors, w, h);
 
     for (int i = 0; i < triangles.size(); ++i) {
