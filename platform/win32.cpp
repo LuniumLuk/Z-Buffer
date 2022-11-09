@@ -11,7 +11,7 @@ const char g_szClassName[] = "viewer_window_class";
 
 struct LuGL::APPWINDOW
 {
-    HWND        *handle;
+    HWND        handle;
     byte_t      *surface;
     bool        keys[KEY_NUM];
     bool        buttons[BUTTON_NUM];
@@ -219,9 +219,16 @@ void LuGL::initializeApplication()
 // need no implementation
 void LuGL::runApplication() {};
 
-void LuGL::terminateApplication() {
+void LuGL::terminateApplication()
+{
     delete[] g_paint_surface;
 };
+
+void LuGL::setWindowTitle(AppWindow *window, const char *title)
+{
+    SetWindowText(window->handle, title);
+}
+
 
 LuGL::AppWindow* LuGL::createWindow(const char *title, long width, long height, byte_t *surface_buffer)
 {
@@ -261,7 +268,7 @@ LuGL::AppWindow* LuGL::createWindow(const char *title, long width, long height, 
     g_bitmapinfo.bmiHeader.biSizeImage      = 0;
 
     g_window = new LuGL::AppWindow();
-    g_window->handle = &hwnd;
+    g_window->handle = hwnd;
     g_window->surface = surface_buffer;
     g_paint_surface = new LuGL::byte_t[width * height * 3];
     memset(g_paint_surface, 0, sizeof(LuGL::byte_t) * width * height * 3);

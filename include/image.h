@@ -18,7 +18,7 @@ struct Image {
         , height(h) {
         int size = w * h * channel();
         data = new dataType[size];
-        std::memset(data, 0, size * sizeof(dataType));
+        memset(data, 0, size * sizeof(dataType));
     }
     ~Image() {
         delete data;

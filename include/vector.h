@@ -151,7 +151,7 @@ struct Vector3 {
     Vector3 normalized() const {
         T magnitude = (*this).dot(*this);
         if (magnitude == 0) return (*this);
-        T f = 1.0f / std::sqrtf(magnitude);
+        T f = 1.0f / sqrtf(magnitude);
         return Vector3{
             x * f,
             y * f,

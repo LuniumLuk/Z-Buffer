@@ -23,6 +23,7 @@ ifeq ($(OS),Windows_NT)
 	MKDIR    := if not exist $(BUILDDIR) mkdir $(BUILDDIR)
 	RUN      :=
 	PLATFORM := win32
+	CLEAN    := if exist $(BUILDDIR) rmdir /s /q $(BUILDDIR)
 else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Darwin)
@@ -40,6 +41,9 @@ prepare:
 
 macos: prepare $(OBJECTS)
 	@$(CLANG) -o $(TARGET) -framework Cocoa $(CFLAGS) platform/macos.mm $(OBJECTS)
+
+win32: prepare $(OBJECTS)
+	@$(CC) -o $(TARGET).exe $(CFLAGS) platform/win32.cpp $(OBJECTS) -lgdi32
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
 	@$(CC) $(CFLAGS) -o $@ -c $<

@@ -107,8 +107,8 @@ float4x4 translate(float x, float y, float z) {
 }
 
 float4x4 rotateX(float angle) {
-    float sin = std::sinf(angle);
-    float cos = std::cosf(angle);
+    float sin = sinf(angle);
+    float cos = cosf(angle);
     float4x4 m;
     m[0][0] = 1;
     m[1][1] = cos;
@@ -120,8 +120,8 @@ float4x4 rotateX(float angle) {
 }
 
 float4x4 rotateY(float angle) {
-    float sin = std::sinf(angle);
-    float cos = std::cosf(angle);
+    float sin = sinf(angle);
+    float cos = cosf(angle);
     float4x4 m;
     m[0][0] = cos;
     m[2][0] = sin;

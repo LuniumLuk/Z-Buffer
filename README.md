@@ -14,9 +14,16 @@ How to compile & run: `g++ -std=c++17 -Og scanline_zbuffer.cpp -o out && ./out`
 
 ### Compile
 
-```bash
-make
-```
+Using hand written **makefile**
+
+MacOS:
+
+1. Compile in zsh `make`
+
+Windows
+
+1. Install MinGW 
+2. Compile in cmd `mingw32-make`
 
 ### Run
 
