@@ -40,6 +40,7 @@ namespace LuGL
     void destroyWindow(AppWindow *window);
     void swapBuffer(AppWindow *window);
     bool windowShouldClose(AppWindow *window);
+    void setWindowTitle(AppWindow *window, const char *title);
 
     /**
      *  input & callbacks

@@ -276,6 +276,11 @@ AppWindow* LuGL::createWindow(const char *title, long width, long height, unsign
     return window;
 }
 
+void LuGL::setWindowTitle(AppWindow *window, const char *title)
+{
+    [window->handle setTitle:[NSString stringWithUTF8String:title]];
+}
+
 void LuGL::destroyWindow(AppWindow *window)
 {
     window->should_close = true;

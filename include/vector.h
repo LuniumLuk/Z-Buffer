@@ -3,12 +3,33 @@
 // A relatively simple implementation of 3D vector math.
 // Vectors are column vectors.
 
+#include <cmath>
 #include <algorithm>
+
+template<typename T>
+struct Vector2;
+template<typename T>
+struct Vector3;
+template<typename T>
+struct Vector4;
 
 template<typename T>
 struct Vector2 {
     using dataType = T;
     dataType x, y;
+
+    Vector2()
+        : x(static_cast<T>(0))
+        , y(static_cast<T>(0)) {}
+    Vector2(T s)
+        : x(s)
+        , y(s) {}
+    Vector2(T _x, T _y)
+        : x(_x)
+        , y(_y) {}
+    Vector2(Vector3<T> const& v)
+        : x(v.x)
+        , y(v.y) {}
 
     T& operator[] (size_t i) {
         assert(i < 2);
@@ -53,14 +74,18 @@ struct Vector2 {
 };
 
 template<typename T>
-struct Vector4;
-
-template<typename T>
 struct Vector3 {
     using dataType = T;
     dataType x, y, z;
 
-    Vector3() = default;
+    Vector3()
+        : x(static_cast<T>(0))
+        , y(static_cast<T>(0))
+        , z(static_cast<T>(0)) {}
+    Vector3(T s)
+        : x(s)
+        , y(s)
+        , z(s) {}
     Vector3(T _x, T _y, T _z)
         : x(_x)
         , y(_y)
@@ -95,6 +120,22 @@ struct Vector3 {
         };
     }
 
+    static Vector3<T> min(Vector3<T> const& first, Vector3<T> const& second) {
+        return Vector3<T>{
+            std::min(first.x, second.x),
+            std::min(first.y, second.y),
+            std::min(first.z, second.z),
+        };
+    }
+
+    static Vector3<T> max(Vector3<T> const& first, Vector3<T> const& second) {
+        return Vector3<T>{
+            std::max(first.x, second.x),
+            std::max(first.y, second.y),
+            std::max(first.z, second.z),
+        };
+    }
+
     T dot(Vector3 const& other) const {
         return x * other.x + y * other.y + z * other.z;
     }
@@ -110,10 +151,11 @@ struct Vector3 {
     Vector3 normalized() const {
         T magnitude = (*this).dot(*this);
         if (magnitude == 0) return (*this);
+        T f = 1.0f / std::sqrtf(magnitude);
         return Vector3{
-            x / magnitude,
-            y / magnitude,
-            z / magnitude,
+            x * f,
+            y * f,
+            z * f,
         };
     }
 };
@@ -131,6 +173,11 @@ struct Vector4 {
         , y(static_cast<T>(0))
         , z(static_cast<T>(0))
         , w(static_cast<T>(0)) {}
+    Vector4(T s)
+        : x(s)
+        , y(s)
+        , z(s)
+        , w(s) {}
     Vector4(T _x, T _y, T _z, T _w)
         : x(_x)
         , y(_y)
@@ -180,6 +227,24 @@ struct Vector4 {
             y + other.y,
             z + other.z,
             w + other.w,
+        };
+    }
+
+    static Vector4<T> min(Vector4<T> const& first, Vector4<T> const& second) {
+        return Vector4<T>{
+            std::min(first.x, second.x),
+            std::min(first.y, second.y),
+            std::min(first.z, second.z),
+            std::min(first.w, second.w),
+        };
+    }
+
+    static Vector4<T> max(Vector4<T> const& first, Vector4<T> const& second) {
+        return Vector4<T>{
+            std::max(first.x, second.x),
+            std::max(first.y, second.y),
+            std::max(first.z, second.z),
+            std::max(first.w, second.w),
         };
     }
 
