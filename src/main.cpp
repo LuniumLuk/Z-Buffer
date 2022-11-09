@@ -104,13 +104,6 @@ struct SortedEdgeTable {
                     ++y;
                 }
                 
-                // std::cout << "Edge: [" << y + min.y << "]\n"
-                //           << "y_max: " << e.y_max << "\n"
-                //           << "x: " << e.x << "\n"
-                //           << "dx: " << e.dx << "\n"
-                //           << "dzdx: " << e.dzdx << "\n"
-                //           << "dzdy: " << e.dzdy << "\n"
-                //           << "z: " << e.z << "\n";
                 table[y].emplace_back(e);
             }
         }
