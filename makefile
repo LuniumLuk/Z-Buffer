@@ -15,7 +15,7 @@ BUILDDIR := build
 ICDDIR   := include
 SRCDIR   := src
 ## Add your *.cpp file here, make sure they are under SRCDIR folder.
-SOURCES  := main.cpp
+SOURCES  := $(wildcard $(addprefix $(SRCDIR)/, *.cpp))
 INCLUDES := $(wildcard $(addprefix $(ICDDIR)/, *.h))
 OBJECTS  := $(addprefix $(BUILDDIR)/, $(notdir $(SOURCES:.cpp=.o)))
 
@@ -45,8 +45,8 @@ macos: prepare $(OBJECTS)
 win32: prepare $(OBJECTS)
 	@$(CC) -o $(TARGET).exe $(CFLAGS) platform/win32.cpp $(OBJECTS) -lgdi32
 
-$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
-	@$(CC) $(CFLAGS) -o $@ -c $<
+$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp $(INCLUDES)
+	@$(CC) $(CFLAGS) -I$(ICDDIR) -o $@ -c $<
 
 clean:
 	@$(CLEAN)

@@ -84,7 +84,7 @@ Vector4<T> operator*(Matrix4<T> const& first, Vector4<T> const& second) {
 using float4x4 = Matrix4<float>;
 using int4x4 = Matrix4<long>;
 
-float4x4 projection(float x = 0.1, float near = 0.1, float far = 100.0) {
+inline float4x4 projection(float x = 0.1, float near = 0.1, float far = 100.0) {
     float4x4 m;
     m[0][0] = near / x;
     m[1][1] = near / x;
@@ -94,7 +94,7 @@ float4x4 projection(float x = 0.1, float near = 0.1, float far = 100.0) {
     return m;
 }
 
-float4x4 translate(float x, float y, float z) {
+inline float4x4 translate(float x, float y, float z) {
     float4x4 m;
     m[0][0] = 1;
     m[1][1] = 1;
@@ -106,7 +106,7 @@ float4x4 translate(float x, float y, float z) {
     return m;
 }
 
-float4x4 rotateX(float angle) {
+inline float4x4 rotateX(float angle) {
     float sin = sinf(angle);
     float cos = cosf(angle);
     float4x4 m;
@@ -119,7 +119,7 @@ float4x4 rotateX(float angle) {
     return m;  
 }
 
-float4x4 rotateY(float angle) {
+inline float4x4 rotateY(float angle) {
     float sin = sinf(angle);
     float cos = cosf(angle);
     float4x4 m;
