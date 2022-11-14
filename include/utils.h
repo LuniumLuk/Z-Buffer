@@ -18,8 +18,11 @@ inline float itof(int x) {
     return x + 0.5f;
 }
 
-inline float clamp(float x, float min, float max) {
-    return std::max(min, std::min(max, x));
+template<typename T>
+inline T clamp(T x, T min, T max) {
+    x = x < min ? min : x;
+    x = x > max ? max : x;
+    return x;
 }
 
 constexpr float PI() { return 3.14159265; }

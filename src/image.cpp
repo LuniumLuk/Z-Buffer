@@ -19,9 +19,9 @@ void Image::fill(colorf const& color) {
     int size = width * height;
     for (int i = 0; i < size; ++i) {
         int offset = i * channel();
-        data[offset + 0] = clamp(color.r, 0, 1) * 255;
-        data[offset + 1] = clamp(color.g, 0, 1) * 255;
-        data[offset + 2] = clamp(color.b, 0, 1) * 255;
+        data[offset + 0] = clamp(color.r, 0.0f, 1.0f) * 255;
+        data[offset + 1] = clamp(color.g, 0.0f, 1.0f) * 255;
+        data[offset + 2] = clamp(color.b, 0.0f, 1.0f) * 255;
     }
 }
 
@@ -29,9 +29,9 @@ void Image::setPixel(int x, int y, colorf const& color) {
     if (x < 0 || x >= width) return;
     if (y < 0 || y >= height) return;
     int offset = (x + (height - 1 - y) * width) * channel();
-    data[offset + 0] = clamp(color.r, 0, 1) * 255;
-    data[offset + 1] = clamp(color.g, 0, 1) * 255;
-    data[offset + 2] = clamp(color.b, 0, 1) * 255;
+    data[offset + 0] = clamp(color.r, 0.0f, 1.0f) * 255;
+    data[offset + 1] = clamp(color.g, 0.0f, 1.0f) * 255;
+    data[offset + 2] = clamp(color.b, 0.0f, 1.0f) * 255;
 }
 
 void Image::writePNG(std::string const& path) {

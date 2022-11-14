@@ -11,6 +11,8 @@
 #include "../include/utils.h"
 #include "../include/mesh.h"
 #include "../include/scanline.h"
+#include "../include/transform.h"
+#include "../include/zb_simple.h"
 
 using namespace LuGL;
 
@@ -29,32 +31,12 @@ unsigned char buffer[512 * 512 * 3];
 // to compile and run using make:
 // >>> make run
 
-
 long scr_w = 512;
 long scr_h = 512;
 float camera_fov = 0.1f;
 float camera_z = -3.0f;
 float rotate_x = 0.0f;
 float rotate_y = 0.0f;
-
-void printMatrix4(float4x4 const& m) {
-    std::cout << m[0][0] << ", "
-              << m[1][0] << ", "
-              << m[2][0] << ", "
-              << m[3][0] << "\n"
-              << m[0][1] << ", "
-              << m[1][1] << ", "
-              << m[2][1] << ", "
-              << m[3][1] << "\n"
-              << m[0][2] << ", "
-              << m[1][2] << ", "
-              << m[2][2] << ", "
-              << m[3][2] << "\n"
-              << m[0][3] << ", "
-              << m[1][3] << ", "
-              << m[2][3] << ", "
-              << m[3][3] << "\n";
-}
 
 int main() {
     initializeApplication();
@@ -91,6 +73,37 @@ int main() {
         colors.emplace_back(float3(shading), 1.0f);
     }
 
+#if 0
+    // ************************************************************
+    // * * * * Test Cascaded Scanline * * * *
+    // ************************************************************
+
+    auto proj = projection(camera_fov, 0.1, 10);
+    auto model = rotateX(rotate_x) * rotateY(rotate_y);
+    auto view = translate(0, 0, camera_z);
+    auto mvp = proj * view * model; 
+    auto vs = toClipSpace(triangles, mvp);
+    auto tris = HierarchicalZBuffer::toClipSpaceTriangles(vs);
+    std::vector<long> indices;
+    for (long i = 0; i < tris.size(); ++i) {
+        indices.push_back(i);
+    }
+
+    // auto octree = HierarchicalZBuffer::OctreeNode(tris, indices, float3(-1, -1, 0), float3(1, 1, 1));
+
+    HierarchicalZBuffer::CascadedZBuffer z_buffer(scr_w, scr_h);
+    z_buffer.clear(1.0f);
+
+    
+
+    // ************************************************************
+    // * * * * Test Cascaded Scanline * * * *
+    // ************************************************************
+#endif
+#if 1
+
+    ZBSimple simpleZBuffer(scr_w, scr_h);
+
     float fixed_delta = 0.16f;
     float from_last_fixed = 0.0f;
     int frame_since_last_fixed = 0;
@@ -102,14 +115,19 @@ int main() {
         auto view = translate(0, 0, camera_z);
         auto mvp = proj * view * model; 
 
+#if 0
         auto vs = toClipSpace(triangles, mvp);
-        auto clip = toScreenSpaceTriangles(vs, scr_w, scr_h);
+        auto clip = ScanlineZBuffer::toScreenSpaceTriangles(vs, scr_w, scr_h);
 
-        SortedEdgeTable SET(clip, scr_w, scr_h);
+        ScanlineZBuffer::SortedEdgeTable SET(clip, scr_w, scr_h);
 
         image.fill(colorf{0.0, 0.0, 0.0, 1.0});
-        scanlineFill(SET, image, colors);
-
+        ScanlineZBuffer::scanlineFill(SET, image, colors);
+#endif
+#if 1
+        image.fill(colorf{0.0, 0.0, 0.0, 1.0});
+        simpleZBuffer.drawMesh(mesh.vertices, mesh.indices, colors, mvp, image);
+#endif
         // Record time and FPS.
         t.update();
         from_last_fixed += t.deltaTime();
@@ -127,6 +145,7 @@ int main() {
     }
 
     terminateApplication();
+#endif
     return 0;
 }
 
@@ -137,13 +156,13 @@ void keyboardEventCallback(AppWindow *window, KEY_CODE key, bool pressed) {
         case KEY_A:
             break;
         case KEY_S:
-            camera_z -= 0.02f;
+            camera_z -= 0.05f;
             camera_z = clamp(camera_z, -4.0f, -0.5f);
             break;
         case KEY_D:
             break;
         case KEY_W:
-            camera_z += 0.02f;
+            camera_z += 0.05f;
             camera_z = clamp(camera_z, -4.0f, -0.5f);
             break;
         case KEY_ESCAPE:

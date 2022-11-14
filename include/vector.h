@@ -53,6 +53,18 @@ struct Vector2 {
             y + other.y,
         };
     }
+    Vector2 operator* (T scaler) const {
+        return Vector2{
+            x * scaler,
+            y * scaler,
+        };
+    }
+    Vector2 operator/ (T scaler) const {
+        return Vector2{
+            x / scaler,
+            y / scaler,
+        };
+    }
 
     static Vector2<T> min(Vector2<T> const& first, Vector2<T> const& second) {
         return Vector2<T>{
@@ -70,6 +82,10 @@ struct Vector2 {
 
     T dot(Vector2 const& other) {
         return x * other.x + y * other.y;
+    }
+
+    T cross(Vector2 const& other) {
+        return x * other.y - y * other.x;
     }
 };
 
@@ -117,6 +133,20 @@ struct Vector3 {
             x + other.x,
             y + other.y,
             z + other.z,
+        };
+    }
+    Vector3 operator* (T scaler) const {
+        return Vector3{
+            x * scaler,
+            y * scaler,
+            z * scaler,
+        };
+    }
+    Vector3 operator/ (T scaler) const {
+        return Vector3{
+            x / scaler,
+            y / scaler,
+            z / scaler,
         };
     }
 
@@ -227,6 +257,22 @@ struct Vector4 {
             y + other.y,
             z + other.z,
             w + other.w,
+        };
+    }
+    Vector4 operator* (T scaler) const {
+        return Vector4{
+            x * scaler,
+            y * scaler,
+            z * scaler,
+            w * scaler,
+        };
+    }
+    Vector4 operator/ (T scaler) const {
+        return Vector4{
+            x / scaler,
+            y / scaler,
+            z / scaler,
+            w / scaler,
         };
     }
 
