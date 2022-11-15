@@ -41,7 +41,7 @@ struct ZBSimple {
         
         depth.clear(1.0f);
         
-        std::vector<float3> clip;
+        std::vector<float3> ndc;
         for (int i = 0; i < vertices.size(); ++i) {
             auto v = float4(vertices[i], 1.0f);
             v = mvp * v;
@@ -49,13 +49,13 @@ struct ZBSimple {
             v.x *= v.w;
             v.y *= v.w;
             v.z *= v.w;
-            clip.push_back(float3(v));
+            ndc.push_back(float3(v));
         }
 
         for (int i = 0; i < indices.size(); ++i) {
-            auto v0 = clip[indices[i][0]];
-            auto v1 = clip[indices[i][1]];
-            auto v2 = clip[indices[i][2]];
+            auto v0 = ndc[indices[i][0]];
+            auto v1 = ndc[indices[i][1]];
+            auto v2 = ndc[indices[i][2]];
 
             // Back face culling.
             auto e01 = v1 - v0;

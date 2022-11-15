@@ -10,9 +10,9 @@
 #include "../include/image.h"
 #include "../include/utils.h"
 #include "../include/mesh.h"
-#include "../include/scanline.h"
 #include "../include/transform.h"
 #include "../include/zb_simple.h"
+#include "../include/zb_scanline.h"
 
 using namespace LuGL;
 
@@ -73,36 +73,8 @@ int main() {
         colors.emplace_back(float3(shading), 1.0f);
     }
 
-#if 0
-    // ************************************************************
-    // * * * * Test Cascaded Scanline * * * *
-    // ************************************************************
-
-    auto proj = projection(camera_fov, 0.1, 10);
-    auto model = rotateX(rotate_x) * rotateY(rotate_y);
-    auto view = translate(0, 0, camera_z);
-    auto mvp = proj * view * model; 
-    auto vs = toClipSpace(triangles, mvp);
-    auto tris = HierarchicalZBuffer::toClipSpaceTriangles(vs);
-    std::vector<long> indices;
-    for (long i = 0; i < tris.size(); ++i) {
-        indices.push_back(i);
-    }
-
-    // auto octree = HierarchicalZBuffer::OctreeNode(tris, indices, float3(-1, -1, 0), float3(1, 1, 1));
-
-    HierarchicalZBuffer::CascadedZBuffer z_buffer(scr_w, scr_h);
-    z_buffer.clear(1.0f);
-
-    
-
-    // ************************************************************
-    // * * * * Test Cascaded Scanline * * * *
-    // ************************************************************
-#endif
-#if 1
-
     ZBSimple simpleZBuffer(scr_w, scr_h);
+    ZBScanline scanlineZBuffer(scr_w, scr_h);
 
     float fixed_delta = 0.16f;
     float from_last_fixed = 0.0f;
@@ -115,19 +87,10 @@ int main() {
         auto view = translate(0, 0, camera_z);
         auto mvp = proj * view * model; 
 
-#if 0
-        auto vs = toClipSpace(triangles, mvp);
-        auto clip = ScanlineZBuffer::toScreenSpaceTriangles(vs, scr_w, scr_h);
-
-        ScanlineZBuffer::SortedEdgeTable SET(clip, scr_w, scr_h);
-
         image.fill(colorf{0.0, 0.0, 0.0, 1.0});
-        ScanlineZBuffer::scanlineFill(SET, image, colors);
-#endif
-#if 1
-        image.fill(colorf{0.0, 0.0, 0.0, 1.0});
-        simpleZBuffer.drawMesh(mesh.vertices, mesh.indices, colors, mvp, image);
-#endif
+        // simpleZBuffer.drawMesh(mesh.vertices, mesh.indices, colors, mvp, image);
+        scanlineZBuffer.drawMesh(mesh.vertices, mesh.indices, colors, mvp, image);
+
         // Record time and FPS.
         t.update();
         from_last_fixed += t.deltaTime();
@@ -145,7 +108,6 @@ int main() {
     }
 
     terminateApplication();
-#endif
     return 0;
 }
 
