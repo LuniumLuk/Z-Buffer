@@ -40,3 +40,14 @@ void Image::writePNG(std::string const& path) {
     stbi_flip_vertically_on_write(false);
     stbi_write_png(path.c_str(), width, height, channel(), data, stride);
 }
+
+void writeDepthToPNG(std::string const& path, int width, int height, float* depth) {
+    int stride = width * 1;
+    stride += (stride % 4) ? (4 - stride % 4) : 0;
+    stbi_flip_vertically_on_write(true);
+    unsigned char* data = new unsigned char[width * height];
+    for (int j = 0; j < width * height; ++j) {
+        data[j] = (unsigned char)(depth[j] * 255);
+    }
+    stbi_write_png(path.c_str(), width, height, 1, data, stride);
+}

@@ -49,3 +49,16 @@ inline float4x4 rotateY(float angle) {
     m[3][3] = 1;
     return m;
 }
+
+inline float4x4 lookAt(float3 const& eye, float3 const& at, float3 const& up) {
+    float3 forward = (eye - at).normalized();
+    float3 left = up.cross(forward).normalized();
+    float3 upward = forward.cross(left);
+    float4x4 m(
+        left.x,     left.y,     left.z,     -(left.x * eye.x + left.y * eye.y + left.z * eye.z),
+        upward.x,   upward.y,   upward.z,   -(upward.x * eye.x + upward.y * eye.y + upward.z * eye.z),
+        forward.x,  forward.y,  forward.z,  -(forward.x * eye.x + forward.y * eye.y + forward.z * eye.z),
+        0.0f,       0.0f,       0.0f,       1.0f
+    );
+    return m;
+}

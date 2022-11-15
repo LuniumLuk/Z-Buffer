@@ -16,3 +16,5 @@ struct Image {
     void setPixel(int x, int y, colorf const& color);
     void writePNG(std::string const& path);
 };
+
+void writeDepthToPNG(std::string const& path, int width, int height, float* depth);

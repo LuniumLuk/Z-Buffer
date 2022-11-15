@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <vector>
+#include <iostream>
 
 struct HierarchicalZBuffer {
 
@@ -10,6 +11,8 @@ struct HierarchicalZBuffer {
     int height;
     std::vector<int> mip_w;
     std::vector<int> mip_h;
+
+    int maxLevel() const { return mip.size() - 1; }
 
     HierarchicalZBuffer(int w, int h)
         : width(w)
@@ -26,7 +29,7 @@ struct HierarchicalZBuffer {
         }
     }
 
-    float sample(int x, int y, int level) const {
+    float at(int x, int y, int level) const {
         assert(level >= 0 && level < mip.size());
         assert(x >= 0 && x < width);
         assert(y >= 0 && y < height);
@@ -35,7 +38,6 @@ struct HierarchicalZBuffer {
         y /= (1 << level);
 
         int offset = y * mip_w[level] + x;
-        assert(offset < (mip_w[level] * mip_h[level]));
 
         return mip[level][offset];
     }
@@ -53,14 +55,19 @@ struct HierarchicalZBuffer {
         assert(x >= 0 && x < width);
         assert(y >= 0 && y < height);
 
-        int offset = y * width + x;
-        for (int i = 0; i < mip.size(); ++i) {
-            int offset = y * mip_w[i] + x;
-            if (mip[i][offset] > z) {
-                mip[i][offset] = z;
-            }
+        int offset = y * mip_w[0] + x;
+        mip[0][offset] = z;
+
+        for (int i = 1; i < mip.size(); ++i) {
             x /= 2;
             y /= 2;
+
+            offset = (y * 2) * mip_w[i - 1] + (x * 2);
+            auto max_z = std::max(std::max(mip[i - 1][offset],     mip[i - 1][offset + mip_w[i - 1]]),
+                                  std::max(mip[i - 1][offset + 1], mip[i - 1][offset + mip_w[i - 1] + 1]));
+
+            offset = y * mip_w[i] + x;
+            mip[i][offset] = max_z;
         }
     }
 
@@ -80,7 +87,7 @@ struct ZBuffer {
         buffer = new float[width * height];
     }
 
-    float depth(int x, int y) const {
+    float at(int x, int y) const {
         assert(x >= 0 && x < width);
         assert(y >= 0 && y < height);
         int offset = y * width + x;
