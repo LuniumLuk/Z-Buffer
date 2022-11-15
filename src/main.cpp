@@ -17,10 +17,6 @@
 
 using namespace LuGL;
 
-// #define SIMPLE
-#define SCANLINE
-// #define HIERARCHICAL
-
 #define rnd() (static_cast<float>(rand())/static_cast<float>(RAND_MAX))
 
 static void keyboardEventCallback(AppWindow *window, KEY_CODE key, bool pressed);
@@ -83,21 +79,30 @@ int main() {
     ZBScanline scanlineZBuffer(scr_w, scr_h);
     ZBHierarchical hierarchicalZBuffer(scr_w, scr_h);
 
+    int counter = 0;
+    double total_elapsed = 0.0;
+
     float fixed_delta = 0.16f;
     float from_last_fixed = 0.0f;
     int frame_since_last_fixed = 0;
     Timer t;
     while (!windowShouldClose(window)) {
 
-        auto proj = projection(camera_fov, 0.1, 10);
+        // auto proj = projection(camera_fov, 0.1, 1000.0);
+        auto proj = ortho(-2, 2, -2, 2, -10, 10);
         auto model = translate(0, 0, 0);
         auto view = lookAt(float3(0, 0, camera_z), float3(0, 0, 0), float3(0, 1, 0));
         auto mvp = proj * view * model;
 
-        image.fill(colorf{0.0, 0.0, 0.0, 1.0});
+// #define SIMPLE
+// #define SCANLINE
+#define HIERARCHICAL
+
+        image.fill(colorf{0.1, 0.2, 0.3, 1.0});
+        t.update();
 #if defined(SIMPLE)
         simpleZBuffer.clearDepth();
-        for (int x = -1; x <= 1; ++x) for (int y = -1; y <= 1; ++y) for (int z = 1; z >= -1; --z) {
+        for (int x = -1; x <= 1; ++x) for (int y = -1; y <= 1; ++y) for (int z = -1; z <= 1; ++z) {
             model = rotateX(rotate_x) * rotateY(rotate_y) * translate(x, y, z);
             mvp = proj * view * model; 
             simpleZBuffer.drawMesh(mesh.vertices, mesh.indices, colors, mvp, image);
@@ -108,13 +113,26 @@ int main() {
         scanlineZBuffer.drawMesh(mesh.vertices, mesh.indices, colors, mvp, image);
 #elif defined(HIERARCHICAL) 
         hierarchicalZBuffer.clearDepth();
-        for (int x = -1; x <= 1; ++x) for (int y = -1; y <= 1; ++y) for (int z = 1; z >= -1; --z) {
+        for (int x = -1; x <= 1; ++x) for (int y = -1; y <= 1; ++y) for (int z = -1; z <= 198; ++z) {
             model = rotateX(rotate_x) * rotateY(rotate_y) * translate(x, y, z);
             mvp = proj * view * model; 
             hierarchicalZBuffer.drawMesh(mesh.vertices, mesh.indices, colors, mvp, image);
         }
 #endif
-        // scanlineZBuffer.drawMesh(mesh.vertices, mesh.indices, colors, mvp, image);
+        // t.update();
+        // total_elapsed += t.deltaTime();
+        // counter++;
+        // if (counter == 2) {
+        //     std::cout << total_elapsed * 500 << "ms\n";
+        //     destroyWindow(window);
+        // }
+
+        // for (int i = 0; i < hierarchicalZBuffer.depth.mip.size(); ++i) {
+        //     auto width = hierarchicalZBuffer.depth.mip_w[i];
+        //     auto height = hierarchicalZBuffer.depth.mip_h[i];
+        //     writeDepthToPNG("depth_" + std::to_string(i) + ".png", width, height, hierarchicalZBuffer.depth.mip[i]);
+        // }
+        // destroyWindow(window);
 
         // Record time and FPS.
         t.update();

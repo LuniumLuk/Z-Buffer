@@ -14,9 +14,7 @@ struct ZBHierarchical {
     ZBHierarchical(int w, int h)
         : width(w)
         , height(h)
-        , depth(w, h) {
-        
-    }
+        , depth(w, h) {}
 
     void clearDepth() {
         depth.clear(1.0f);
@@ -29,6 +27,8 @@ struct ZBHierarchical {
                   Image & image) {
         
         std::vector<float3> ndc;
+        float3 min = float3(std::numeric_limits<float>::max());
+        float3 max = float3(std::numeric_limits<float>::min());
         for (int i = 0; i < vertices.size(); ++i) {
             auto v = float4(vertices[i], 1.0f);
             v = mvp * v;
@@ -36,8 +36,15 @@ struct ZBHierarchical {
             v.x *= v.w;
             v.y *= v.w;
             v.z *= v.w;
+            min = float3::min(min, v);
+            max = float3::max(max, v);
             ndc.push_back(float3(v));
         }
+
+        // Cull mesh if out of screen.
+        if (min.x > 1 || max.x < -1
+         || min.y > 1 || max.y < -1 
+         || min.z > 1 || max.z <  0 ) return;
 
         for (int i = 0; i < indices.size(); ++i) {
             auto v0 = ndc[indices[i][0]];
@@ -65,6 +72,10 @@ struct ZBHierarchical {
             auto x_max = clamp(ftoi(max.x), 0, width - 1);
             auto y_min = clamp(ftoi(min.y), 0, height - 1);
             auto y_max = clamp(ftoi(max.y), 0, height - 1);
+
+            // Cull triangle if out of screen.
+            if (x_min > width  || x_max < 0
+             || y_min > height || y_max < 0) continue;
 
             // Perspective-correct interpolation.
             v0.z = 1 / v0.z;

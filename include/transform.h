@@ -12,6 +12,21 @@ inline float4x4 projection(float x = 0.1, float near = 0.1, float far = 100.0) {
     return m;
 }
 
+inline float4x4 ortho(float left, float right, float bottom, float top, float near, float far) {
+    float4x4 m;
+    m[0][0] = 2 / (right - left);
+    m[1][1] = 2 / (top - bottom);
+    m[2][2] = -2 / (far - near);
+    // m[0][3] = -(right + left) / (right - left);
+    // m[1][3] = -(top + bottom) / (top - bottom);
+    // m[2][3] = -(far + near) / (far - near);
+    m[3][0] = -(right + left) / (right - left);
+    m[3][1] = -(top + bottom) / (top - bottom);
+    m[3][2] = -(far + near) / (far - near);
+    m[3][3] = 1;
+    return m;
+}
+
 inline float4x4 translate(float x, float y, float z) {
     float4x4 m;
     m[0][0] = 1;
