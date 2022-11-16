@@ -4,6 +4,7 @@
 #include "vector.h"
 #include "matrix.h"
 #include "utils.h"
+#include "mesh.h"
 #include "image.h"
 #include <iostream>
 
@@ -23,8 +24,7 @@ struct ZBSimple {
         depth.clear(1.0f);
     }
 
-    void drawMesh(std::vector<float3> const& vertices,
-                  std::vector<int3> const& indices, 
+    void drawMesh(TriangleMesh const& mesh,
                   std::vector<colorf> const& colors,
                   float4x4 const& mvp,
                   Image & image) {
@@ -32,8 +32,8 @@ struct ZBSimple {
         std::vector<float3> ndc;
         float3 min = float3(std::numeric_limits<float>::max());
         float3 max = float3(std::numeric_limits<float>::min());
-        for (int i = 0; i < vertices.size(); ++i) {
-            auto v = float4(vertices[i], 1.0f);
+        for (int i = 0; i < mesh.vertices.size(); ++i) {
+            auto v = float4(mesh.vertices[i], 1.0f);
             v = mvp * v;
             v.w = 1 / v.w;
             v.x *= v.w;
@@ -49,10 +49,10 @@ struct ZBSimple {
          || min.y > 1 || max.y < -1 
          || min.z > 1 || max.z <  0 ) return;
 
-        for (int i = 0; i < indices.size(); ++i) {
-            auto v0 = ndc[indices[i][0]];
-            auto v1 = ndc[indices[i][1]];
-            auto v2 = ndc[indices[i][2]];
+        for (int i = 0; i < mesh.indices.size(); ++i) {
+            auto v0 = ndc[mesh.indices[i][0]];
+            auto v1 = ndc[mesh.indices[i][1]];
+            auto v2 = ndc[mesh.indices[i][2]];
 
             // Back-face culling.
             auto e01 = v1 - v0;

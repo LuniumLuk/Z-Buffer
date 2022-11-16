@@ -82,4 +82,4 @@ Vector4<T> operator*(Matrix4<T> const& first, Vector4<T> const& second) {
 }
 
 using float4x4 = Matrix4<float>;
-using int4x4 = Matrix4<long>;
+using int4x4 = Matrix4<int>;

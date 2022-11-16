@@ -1,8 +1,6 @@
 #include <iostream>
 #include <vector>
-#include <limits>
 #include <cmath>
-#include <chrono>
 #include "../include/timer.h"
 #include "../include/platform.h"
 #include "../include/vector.h"
@@ -14,9 +12,14 @@
 #include "../include/zb_simple.h"
 #include "../include/zb_scanline.h"
 #include "../include/zb_hierarchical.h"
+#include "../include/zb_octree.h"
 
+// A simple window API that support frame buffer swapping.
+// I transported this window API from my software renderer project:
+// https://github.com/LuniumLuk/soft-renderer
 using namespace LuGL;
 
+// Generate random float from 0 to 1.
 #define rnd() (static_cast<float>(rand())/static_cast<float>(RAND_MAX))
 
 static void keyboardEventCallback(AppWindow *window, KEY_CODE key, bool pressed);
@@ -24,18 +27,25 @@ static void mouseButtonEventCallback(AppWindow *window, MOUSE_BUTTON button, boo
 static void mouseScrollEventCallback(AppWindow *window, float offset);
 static void mouseDragEventCallback(AppWindow *window, float x, float y);
 
+int const scr_w = 512;
+int const scr_h = 512;
+
 static AppWindow *window;
-unsigned char buffer[512 * 512 * 3];
 
-// This program is a demo of Scanline Z-buffer Algorithm
-// -------------------------------------------------------
-// to compile and run using make:
-// >>> make run
+/**
+ * This program is a demo of various Z-buffer algorithms.
+ *  1. Simple Z-Buffer
+ *  2. Scanline Z-Buffer (only able to render single mesh depth-correctly)
+ *  3. Hierarchical Z-Buffer
+ *  4. Hierarchical Z-Buffer accelerated by Object-Space Octree
+ * -------------------------------------------------------
+ * To compile and run using command: 'make run'
+ * or 'mingw32-make run' in window
+ */
 
-long scr_w = 512;
-long scr_h = 512;
-float camera_fov = 0.1f;
-float camera_z = -3.0f;
+
+float camera_fov = PI() * 0.2;
+float camera_z = -6.0f;
 float rotate_x = 0.0f;
 float rotate_y = 0.0f;
 ZBHierarchical* zb;
@@ -52,51 +62,60 @@ int main() {
     setMouseScrollCallback(window, mouseScrollEventCallback);
     setMouseDragCallback(window, mouseDragEventCallback);
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+////////////// S C E N E   S E T U P
+/////////////////////////////////////////////////////////////////////////////////////////////
+
     float3 light_dir = float3(1.0, 1.0, -1.0).normalized();
     TriangleMesh mesh{ "meshes/spot.obj" };
-    std::vector<float3> triangles;
     std::vector<colorf> colors;
     // Shade each triangle.
     for (size_t i = 0; i < mesh.indices.size(); ++i) {
         auto v0 = mesh.vertices[mesh.indices[i][0]];
         auto v1 = mesh.vertices[mesh.indices[i][1]];
         auto v2 = mesh.vertices[mesh.indices[i][2]];
-        triangles.push_back(v0);
-        triangles.push_back(v1);
-        triangles.push_back(v2);
 
         auto e01 = v1 - v0;
         auto e02 = v2 - v0;
         auto normal = e01.cross(e02).normalized();
-        // Shade by simple diffuse.
+        // Shade by diffuse lighting.
         auto shading = light_dir.dot(normal);
         shading = clamp(shading, 0.05f, 1.0f);
 
         colors.emplace_back(float3(shading), 1.0f);
     }
 
+    std::cout << "Mesh vertices: " << mesh.indices.size() << std::endl;
+
     ZBSimple simpleZBuffer(scr_w, scr_h);
     ZBScanline scanlineZBuffer(scr_w, scr_h);
     ZBHierarchical hierarchicalZBuffer(scr_w, scr_h);
+    ZBOctree octreeZBuffer(scr_w, scr_h);
 
+#if defined(BENCHMARK)
     int counter = 0;
     double total_elapsed = 0.0;
+#endif
 
-    float fixed_delta = 0.16f;
-    float from_last_fixed = 0.0f;
-    int frame_since_last_fixed = 0;
+    SETUP_FPS();
     Timer t;
     while (!windowShouldClose(window)) {
 
-        // auto proj = projection(camera_fov, 0.1, 1000.0);
-        auto proj = ortho(-2, 2, -2, 2, -10, 10);
-        auto model = translate(0, 0, 0);
-        auto view = lookAt(float3(0, 0, camera_z), float3(0, 0, 0), float3(0, 1, 0));
-        auto mvp = proj * view * model;
+/////////////////////////////////////////////////////////////////////////////////////////////
+////////////// R E N D E R   L O O P
+/////////////////////////////////////////////////////////////////////////////////////////////
 
+        auto aspect_ratio = (float)scr_h / scr_w;
+        auto proj = projection(camera_fov, (float)scr_h / scr_w);
+        // auto proj = ortho(-2, 2, -2 * aspect_ratio, 1 * aspect_ratio, -100, 100);
+        auto model = translate(0, 0, 0);
+        auto view = lookAt(mesh.center + float3(0, 0, camera_z), mesh.center, float3(0, 1, 0));
+        auto mvp = proj * view * model;
+    
 // #define SIMPLE
 // #define SCANLINE
-#define HIERARCHICAL
+// #define HIERARCHICAL
+#define OCTREE
 
         image.fill(colorf{0.1, 0.2, 0.3, 1.0});
         t.update();
@@ -105,47 +124,49 @@ int main() {
         for (int x = -1; x <= 1; ++x) for (int y = -1; y <= 1; ++y) for (int z = -1; z <= 1; ++z) {
             model = rotateX(rotate_x) * rotateY(rotate_y) * translate(x, y, z);
             mvp = proj * view * model; 
-            simpleZBuffer.drawMesh(mesh.vertices, mesh.indices, colors, mvp, image);
+            simpleZBuffer.drawMesh(mesh, colors, mvp, image);
         }
 #elif defined(SCANLINE)
         model = rotateX(rotate_x) * rotateY(rotate_y);
         mvp = proj * view * model; 
-        scanlineZBuffer.drawMesh(mesh.vertices, mesh.indices, colors, mvp, image);
+        scanlineZBuffer.drawMesh(mesh, colors, mvp, image);
 #elif defined(HIERARCHICAL) 
         hierarchicalZBuffer.clearDepth();
-        for (int x = -1; x <= 1; ++x) for (int y = -1; y <= 1; ++y) for (int z = -1; z <= 198; ++z) {
+        for (int x = -1; x <= 1; ++x) for (int y = -1; y <= 1; ++y) for (int z = -1; z <= 1; ++z) {
             model = rotateX(rotate_x) * rotateY(rotate_y) * translate(x, y, z);
             mvp = proj * view * model; 
-            hierarchicalZBuffer.drawMesh(mesh.vertices, mesh.indices, colors, mvp, image);
+            hierarchicalZBuffer.drawMesh(mesh, colors, mvp, image);
+        }
+#elif defined(OCTREE) 
+        octreeZBuffer.clearDepth();
+        model = rotateX(rotate_x) * rotateY(rotate_y);
+        mvp = proj * view * model; 
+        octreeZBuffer.drawMesh(mesh, colors, mvp, image, true);
+        // for (int x = -1; x <= 1; ++x) for (int y = -1; y <= 1; ++y) for (int z = -1; z <= 1; ++z) {
+        //     model = rotateX(rotate_x) * rotateY(rotate_y) * translate(x, y, z);
+        //     mvp = proj * view * model; 
+        //     octreeZBuffer.drawMesh(mesh, colors, mvp, image, true);
+        // }
+#endif
+
+/**
+ * Benchmark functionality, to see runtime of each render stage
+ * enable by using 'make benchmark' option
+ * or handcode '#define BENCHMARK' in this file
+ */
+#if defined(BENCHMARK)
+        t.update();
+        total_elapsed += t.deltaTime();
+        counter++;
+        if (counter == 10) {
+            std::cout << "Render Pass: " << g_render_time / g_counter * 1000 << "ms\n";
+            std::cout << "Octree Pass: " << g_octree_time / g_counter * 1000 << "ms\n";
+            std::cout << total_elapsed * 100 << "ms\n";
+            destroyWindow(window);
         }
 #endif
-        // t.update();
-        // total_elapsed += t.deltaTime();
-        // counter++;
-        // if (counter == 2) {
-        //     std::cout << total_elapsed * 500 << "ms\n";
-        //     destroyWindow(window);
-        // }
 
-        // for (int i = 0; i < hierarchicalZBuffer.depth.mip.size(); ++i) {
-        //     auto width = hierarchicalZBuffer.depth.mip_w[i];
-        //     auto height = hierarchicalZBuffer.depth.mip_h[i];
-        //     writeDepthToPNG("depth_" + std::to_string(i) + ".png", width, height, hierarchicalZBuffer.depth.mip[i]);
-        // }
-        // destroyWindow(window);
-
-        // Record time and FPS.
-        t.update();
-        from_last_fixed += t.deltaTime();
-        ++frame_since_last_fixed;
-        if (from_last_fixed > fixed_delta) {
-            int fps = std::round(frame_since_last_fixed / from_last_fixed);
-            std::string title = "Viewer @ LuGL FPS: " + std::to_string(fps);
-            setWindowTitle(window, title.c_str());
-            from_last_fixed = 0.0f;
-            frame_since_last_fixed = 0;
-        }
-
+        UPDATE_FPS();
         swapBuffer(window);
         pollEvent();
     }
@@ -153,6 +174,10 @@ int main() {
     terminateApplication();
     return 0;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+////////////// I N P U T   C A L L B A C K S
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 void keyboardEventCallback(AppWindow *window, KEY_CODE key, bool pressed) {
     __unused_variable(window);

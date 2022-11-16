@@ -14,14 +14,14 @@ namespace LuGL
     typedef enum {BUTTON_L, BUTTON_R, BUTTON_NUM} MOUSE_BUTTON;
 
     struct TIME {
-        long year;
-        long month;
-        long day_of_week;
-        long day;
-        long hour;
-        long minute;
-        long second;
-        long millisecond;
+        int year;
+        int month;
+        int day_of_week;
+        int day;
+        int hour;
+        int minute;
+        int second;
+        int millisecond;
     };
     typedef struct TIME Time;
 

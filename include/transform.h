@@ -1,11 +1,12 @@
 #pragma once
 
+#include "utils.h"
 #include "matrix.h"
 
-inline float4x4 projection(float x = 0.1, float near = 0.1, float far = 100.0) {
+inline float4x4 projection(float fov = PI_div_two(), float aspect = 1.0, float near = 0.1, float far = 100.0) {
     float4x4 m;
-    m[0][0] = near / x;
-    m[1][1] = near / x;
+    m[0][0] = 1 / (aspect * tanf(fov / 2));
+    m[1][1] = 1 / (aspect * tanf(fov / 2));
     m[2][2] = -(far + near) / (far - near);
     m[3][2] = -(2 * far * near) / (far - near);
     m[2][3] = -1;

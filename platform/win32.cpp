@@ -13,6 +13,8 @@ struct LuGL::APPWINDOW
 {
     HWND        handle;
     byte_t      *surface;
+    int         width;
+    int         height;
     bool        keys[KEY_NUM];
     bool        buttons[BUTTON_NUM];
     bool        should_close;
@@ -28,8 +30,6 @@ LuGL::byte_t * g_paint_surface;
 HINSTANCE   g_hInstance;
 POINTS      g_mouse_pts;
 BITMAPINFO  g_bitmapinfo;
-long        g_viewer_width;
-long        g_viewer_height;
 bool        g_update_paint = false;
 
 static void handleKeyPress(WPARAM wParam, bool pressed)
@@ -65,7 +65,7 @@ static void handleMouseDrag(float x, float y)
     if (g_window->mouseDragCallback)
     {
         // inverse Y
-        g_window->mouseDragCallback(g_window, x, g_viewer_height - y);
+        g_window->mouseDragCallback(g_window, x, g_window->height - y);
     }
 }
 
@@ -108,13 +108,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         HDC hdc = GetDC(hwnd);
 
-        blitRGB2BGR(g_window->surface, g_paint_surface, g_viewer_width, g_viewer_height);
+        blitRGB2BGR(g_window->surface, g_paint_surface, g_window->width, g_window->height);
         SetDIBitsToDevice(
             hdc,
             0, 0,
-            g_viewer_width,
-            g_viewer_height,
-            0, 0, 0, g_viewer_height,
+            g_window->width,
+            g_window->height,
+            0, 0, 0, g_window->height,
             (void*)(g_paint_surface),
             &g_bitmapinfo,
             DIB_RGB_COLORS
@@ -162,13 +162,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 HDC hdc = GetDC(hwnd);
 
-                blitRGB2BGR(g_window->surface, g_paint_surface, g_viewer_width, g_viewer_height);
+                blitRGB2BGR(g_window->surface, g_paint_surface, g_window->width, g_window->height);
                 SetDIBitsToDevice(
                     hdc,
                     0, 0,
-                    g_viewer_width,
-                    g_viewer_height,
-                    0, 0, 0, g_viewer_height,
+                    g_window->width,
+                    g_window->height,
+                    0, 0, 0, g_window->height,
                     (void*)(g_paint_surface),
                     &g_bitmapinfo,
                     DIB_RGB_COLORS
@@ -270,11 +270,10 @@ LuGL::AppWindow* LuGL::createWindow(const char *title, long width, long height, 
     g_window = new LuGL::AppWindow();
     g_window->handle = hwnd;
     g_window->surface = surface_buffer;
+    g_window->width = width;
+    g_window->height = height;
     g_paint_surface = new LuGL::byte_t[width * height * 3];
     memset(g_paint_surface, 0, sizeof(LuGL::byte_t) * width * height * 3);
-
-    g_viewer_width = width;
-    g_viewer_height = height;
 
     ShowWindow(hwnd, SW_SHOWNORMAL);
     UpdateWindow(hwnd);

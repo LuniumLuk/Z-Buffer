@@ -9,15 +9,14 @@ static bool compareEdge(Edge const& first, Edge const& second) {
     }
 }
 
-void ZBScanline::drawMesh(std::vector<float3> const& vertices,
-                          std::vector<int3> const& indices, 
+void ZBScanline::drawMesh(TriangleMesh const& mesh,
                           std::vector<colorf> const& colors,
                           float4x4 const& mvp,
                           Image & image) {
 
     std::vector<float3> ndc;
-    for (int i = 0; i < vertices.size(); ++i) {
-        auto v = float4(vertices[i], 1.0f);
+    for (int i = 0; i < mesh.vertices.size(); ++i) {
+        auto v = float4(mesh.vertices[i], 1.0f);
         v = mvp * v;
         v.w = 1 / v.w;
         v.x *= v.w;
@@ -29,12 +28,12 @@ void ZBScanline::drawMesh(std::vector<float3> const& vertices,
     std::vector<Triangle> triangles;
 
     // Setup triangles.
-    for (size_t i = 0; i < indices.size(); ++i) {
+    for (size_t i = 0; i < mesh.indices.size(); ++i) {
         Triangle t;
 
-        auto v0 = ndc[indices[i][0]];
-        auto v1 = ndc[indices[i][1]];
-        auto v2 = ndc[indices[i][2]];
+        auto v0 = ndc[mesh.indices[i][0]];
+        auto v1 = ndc[mesh.indices[i][1]];
+        auto v2 = ndc[mesh.indices[i][2]];
 
         // Screen mapping.
         v0.x = (v0.x * 0.5f + 0.5f) * width;
@@ -180,8 +179,8 @@ ZBScanline::SortedEdgeTable::SortedEdgeTable(std::vector<Triangle> const& tris, 
 
 void ZBScanline::SortedEdgeTable::initTable(std::vector<Triangle> const& tris) {
     // Get bounding of all triangles.
-    min = { std::numeric_limits<long>::max(), std::numeric_limits<long>::max() };
-    max = { std::numeric_limits<long>::min(), std::numeric_limits<long>::min() };
+    min = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
+    max = { std::numeric_limits<int>::min(), std::numeric_limits<int>::min() };
     for (size_t i = 0; i < tris.size(); ++i) {
         min = int2::min(min, tris[i].min());
         max = int2::max(max, tris[i].max());

@@ -4,6 +4,25 @@
 #include <algorithm>
 #include "vector.h"
 
+#define SETUP_FPS()             \
+float fixed_delta = 0.16f;      \
+float from_last_fixed = 0.0f;   \
+int frame_since_last_fixed = 0
+
+#define UPDATE_FPS() do {                                               \
+t.update();                                                             \
+from_last_fixed += t.deltaTime();                                       \
+++frame_since_last_fixed;                                               \
+if (from_last_fixed > fixed_delta) {                                    \
+    int fps = std::round(frame_since_last_fixed / from_last_fixed);     \
+    std::string title = "Viewer @ LuGL FPS: " + std::to_string(fps);    \
+    setWindowTitle(window, title.c_str());                              \
+    from_last_fixed = 0.0f;                                             \
+    frame_since_last_fixed = 0;                                         \
+}                                                                       \
+} while(0) 
+        
+
 // Convert float value in scene to integer value in image space.
 inline int ftoi(float x) {
     // Difference of (int)std::floor(x) and static_cast<int>(x):
@@ -19,8 +38,8 @@ inline float itof(int x) {
     return x + 0.5f;
 }
 
-template<typename T>
-inline T clamp(T x, T min, T max) {
+template<typename T, typename U, typename V>
+inline T clamp(T x, U min, V max) {
     x = x < min ? min : x;
     x = x > max ? max : x;
     return x;

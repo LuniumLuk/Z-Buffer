@@ -15,6 +15,8 @@ struct LuGL::APPWINDOW
 {
     NSWindow    *handle;
     byte_t      *surface;
+    int         width;
+    int         height;
     bool        keys[KEY_NUM];
     bool        buttons[BUTTON_NUM];
     bool        should_close;
@@ -225,14 +227,14 @@ void handleMouseScroll(AppWindow *window, float delta)
 {
     NSBitmapImageRep *rep = [[[NSBitmapImageRep alloc]
             initWithBitmapDataPlanes:&(_window->surface)
-                          pixelsWide:512
-                          pixelsHigh:512
+                          pixelsWide:_window->width
+                          pixelsHigh:_window->height
                        bitsPerSample:8
                      samplesPerPixel:3
                             hasAlpha:NO
                             isPlanar:NO
                       colorSpaceName:NSCalibratedRGBColorSpace
-                         bytesPerRow:512 * 3
+                         bytesPerRow:_window->width * 3
                         bitsPerPixel:24] autorelease];
     NSImage *nsimage = [[[NSImage alloc] init] autorelease];
     [nsimage addRepresentation:rep];
@@ -258,6 +260,8 @@ AppWindow* LuGL::createWindow(const char *title, long width, long height, unsign
     AppWindow *window = new AppWindow();
     window->handle = handle;
     window->surface = surface_buffer;
+    window->width = width;
+    window->height = height;
 
     WindowDelegate *delegate;
     delegate = [[WindowDelegate alloc] initWithWindow:window];

@@ -20,6 +20,11 @@ struct HierarchicalZBuffer {
         : width(w)
         , height(h) {
         
+        // Currenly only support width and height
+        // that are power of 2.
+        assert(1 << (int)log2(w) == w);
+        assert(1 << (int)log2(h) == h);
+        
         int level = 0;
         while (w > 0 && h > 0) {
             mip_w.push_back(w);

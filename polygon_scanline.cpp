@@ -19,7 +19,7 @@
 // g++ -std=c++17 -Og polygon_scanline.cpp -o out && ./out
 
 struct Edge {
-    long y_max;
+    int y_max;
     float x;
     float dx;
 };
@@ -65,10 +65,10 @@ struct SortedEdgeTable {
 private:
     void initTable(std::vector<int2> const& p) {
         // Get bounding of polygon.
-        long x_min = std::numeric_limits<long>::max();
-        long x_max = std::numeric_limits<long>::min();
-        long y_min = std::numeric_limits<long>::max();
-        long y_max = std::numeric_limits<long>::min();
+        int x_min = std::numeric_limits<int>::max();
+        int x_max = std::numeric_limits<int>::min();
+        int y_min = std::numeric_limits<int>::max();
+        int y_max = std::numeric_limits<int>::min();
         for (int i = 0; i < p.size(); ++i) {
             x_min = std::min(x_min, p[i].x);
             x_max = std::max(x_max, p[i].x);

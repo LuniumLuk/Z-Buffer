@@ -300,9 +300,9 @@ struct Vector4 {
 };
 
 using float2 = Vector2<float>;
-using int2 = Vector2<long>;
+using int2 = Vector2<int>;
 using float3 = Vector3<float>;
-using int3 = Vector3<long>;
+using int3 = Vector3<int>;
 using float4 = Vector4<float>;
-using int4 = Vector4<long>;
+using int4 = Vector4<int>;
 using colorf = Vector4<float>;
