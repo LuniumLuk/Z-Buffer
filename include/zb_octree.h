@@ -13,6 +13,7 @@
 long g_counter = 0;
 double g_octree_time = 0.0;
 double g_render_time = 0.0;
+long g_total_octree = 0;
 #endif
 
 struct ZBOctree {
@@ -20,6 +21,7 @@ struct ZBOctree {
     int height;
     HierarchicalZBuffer depth;
     Octree* octree;
+    bool refresh = true;
 #if defined(BENCHMARK)
     Timer timer0, timer1;
 #endif
@@ -36,6 +38,12 @@ struct ZBOctree {
 
     void clearDepth() {
         depth.clear(1.0f);
+    }
+    
+    void clearOctree() {
+        if (octree)
+            delete octree;
+        octree = nullptr;
     }
 
     void drawMesh(TriangleMesh const& mesh,
@@ -63,32 +71,65 @@ struct ZBOctree {
             ndc.push_back(float3(v));
         }
 
-#if defined(BENCHMARK)
-        timer1.update();
-#endif
-        // Additional pass to build octree.
-        if (octree) delete octree; // Delete previous octree.
-        octree = new Octree((max + min) / 2, (max - min) / 2);
-        for (int i = 0; i < mesh.indices.size(); ++i) {
-            auto v0 = ndc[mesh.indices[i][0]];
-            auto v1 = ndc[mesh.indices[i][1]];
-            auto v2 = ndc[mesh.indices[i][2]];
-            auto d = new OctreeData(v0, v1, v2);
-            octree->insert(d);
-        }
-#if defined(BENCHMARK)
-        timer1.update();
-        g_octree_time += timer1.deltaTime();
-#endif
         // Cull mesh if out of screen.
         if (min.x > 1 || max.x < -1
          || min.y > 1 || max.y < -1 
          || min.z > 1 || max.z <  0 ) return;
 
-        for (int i = 0; i < mesh.indices.size(); ++i) {
-            auto v0 = ndc[mesh.indices[i][0]];
-            auto v1 = ndc[mesh.indices[i][1]];
-            auto v2 = ndc[mesh.indices[i][2]];
+#if defined(BENCHMARK)
+        timer1.update();
+#endif
+        // Additional pass to build octree.
+        if (octree && refresh) {
+            delete octree; // Delete previous octree.
+            octree = nullptr;
+        }
+
+        if (!octree) {
+            octree = new Octree((max + min) / 2, (max - min) / 2);
+            for (int i = 0; i < mesh.indices.size(); ++i) {
+                auto v0 = ndc[mesh.indices[i][0]];
+                auto v1 = ndc[mesh.indices[i][1]];
+                auto v2 = ndc[mesh.indices[i][2]];
+                auto d = new OctreeData(v0, v1, v2, i);
+                octree->insert(d);
+            }
+        }
+
+#if defined(BENCHMARK)
+        timer1.update();
+        g_octree_time += timer1.deltaTime();
+#endif
+
+        drawOctree(octree, colors, image);
+
+        if (display_octree) {
+            octree->drawWireframe(image, octree_color);
+        }
+#if defined(BENCHMARK)
+        timer0.update();
+        g_render_time += timer0.deltaTime();
+        g_counter++;
+#endif
+    }
+
+public:
+    void drawOctree(Octree * tree,
+                    std::vector<colorf> const& colors,
+                    Image & image) {
+
+#if defined(BENCHMARK)
+        g_total_octree++;
+#endif
+
+        if (!tree) return;
+
+        // Render triangle at the center of the node.
+        for (int i = 0; i < tree->datas.size(); ++i) {
+            auto data = tree->datas[i];
+            auto v0 = data->v[0];
+            auto v1 = data->v[1];
+            auto v2 = data->v[2];
 
             // Back-face culling.
             auto e01 = v1 - v0;
@@ -124,8 +165,8 @@ struct ZBOctree {
             auto area = edgeFunction2D(v0, v1, v2);
             if (area == 0) continue;
 
-            auto level = getMinBoundingLevel(x_min, x_max, y_min, y_max);
-            if (min.z > depth.at((x_min + x_max) / 2, (y_min + y_max) / 2, level)) continue;
+            // auto level = getMinBoundingLevel(x_min, x_max, y_min, y_max);
+            // if (min.z > depth.at((x_min + x_max) / 2, (y_min + y_max) / 2, level)) continue;
 
             for (int x = x_min; x <= x_max; ++x) {
                 for (int y = y_min; y <= y_max; ++y) {
@@ -146,22 +187,40 @@ struct ZBOctree {
                     if (pos.z > depth.at(x, y, 0)) continue;
                     
                     depth.write(x, y, pos.z);
-                    image.setPixel(x, y, colors[i]);
+                    image.setPixel(x, y, colors[data->id]);
                 }
             }
         }
 
-        if (display_octree) {
-            octree->drawWireframe(image, octree_color);
+        if (!tree->isLeaf()) {
+            for (int i = 0; i < 8; ++i) {
+                if (!tree->children[i]) continue;
+
+                if (depthTestOctree(tree->children[i])) {
+                    drawOctree(tree->children[i], colors, image);
+                }
+                else {
+                    // Skip next child if this child is in the
+                    // negative half of z-axis
+                    if (i % 2 == 0) ++i;
+                }
+            }
         }
-#if defined(BENCHMARK)
-        timer0.update();
-        g_render_time += timer0.deltaTime();
-        g_counter++;
-#endif
     }
 
-public:
+    bool depthTestOctree(Octree * tree) {
+        auto x_min = clamp(ftoi(((tree->center.x - tree->halfExtent.x) * 0.5f + 0.5f) * width), 0, width - 1);
+        auto x_max = clamp(ftoi(((tree->center.x + tree->halfExtent.x) * 0.5f + 0.5f) * width), 0, width - 1);
+        auto y_min = clamp(ftoi(((tree->center.y - tree->halfExtent.y) * 0.5f + 0.5f) * height), 0, height - 1);
+        auto y_max = clamp(ftoi(((tree->center.y + tree->halfExtent.y) * 0.5f + 0.5f) * height), 0, height - 1);
+        auto z_min = tree->center.z - tree->halfExtent.z;
+
+        auto level = getMinBoundingLevel(x_min, x_max, y_min, y_max);
+        if (z_min > depth.at((x_min + x_max) / 2, (y_min + y_max) / 2, level)) return false;
+        
+        return true;
+    }
+
     int getMinBoundingLevel(int x_min, int x_max, int y_min, int y_max) {
         auto x = (x_min + x_max) / 2;
         auto y = (y_min + y_max) / 2;
@@ -171,6 +230,9 @@ public:
         auto y_bound_min = 0;
         auto y_bound_max = height - 1;
 
+        // Here approximate level is not practical since
+        // level is not only associated with bounding extend
+        // but also highly associated with [x, y].
         auto level = depth.maxLevel();
         while (level > 0
             && x_bound_min <= x_min && x_bound_max >= x_max

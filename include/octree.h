@@ -26,16 +26,18 @@
 #include <vector>
 #include <iostream>
 
-#define THRESHOLD_TO_SUBDIVIDE 4
+#define THRESHOLD_TO_SUBDIVIDE 64
 
 struct OctreeData {
     float3 v[3];
     float3 min, max;
+    int id;
 
-    OctreeData(float3 const& v0, float3 const& v1, float3 const& v2)
+    OctreeData(float3 const& v0, float3 const& v1, float3 const& v2, int _id)
         : v{v0, v1, v2}
         , min(float3::min(float3::min(v[0], v[1]), v[2]))
-        , max(float3::max(float3::max(v[0], v[1]), v[2])) {}
+        , max(float3::max(float3::max(v[0], v[1]), v[2]))
+        , id(_id) {}
 };
 
 struct Octree {
@@ -64,7 +66,6 @@ struct Octree {
         for (int i = 0; i < datas.size(); ++i) delete datas[i];
         for (int i = 0; i < 8; ++i) if (children[i]) delete children[i];
     }
-
 
     bool isLeaf() const { return children[0] == nullptr; };
 
