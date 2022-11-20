@@ -1,52 +1,88 @@
 # Z-Buffer
 
+## 概述
+
 2022-2023秋冬学期《计算机图形学》课程大作业
 
 本项目实现了以下功能：
 
 - 多边形扫描转换
-- 扫描线Z-Buffer
+- 扫描线Z-Buffer（仅支持单个mesh的draw call，多个draw call必须先对mesh做排序）
 - 普通Z-Buffer（全画幅Z-Buffer）
 - 层次Z-Buffer
 - 八叉树加速的层次Z-Buffer
 
-## 如何使用
+## 编译项目
 
-**多边形扫描转换**的实现位于`polygon_scanline.cpp`文件中，通过如下指令编译并运行后结果将储存为文件名为`result.png`的图像：
+### 多边形扫描转换
 
-```bash
+多边形扫描转换的实现位于`polygon_scanline.cpp`文件中，通过如下指令编译并运行后结果将储存为文件名为`result.png`的图像：
+
+```shell
 g++ -std=c++17 -Og polygon_scanline.cpp -o out && ./out
 ```
 
-其余算法使用窗口程序展示，使用make编译并运行，目前支持MacOS和Windows平台：
+### Z-Buffer
 
-MacOS:
+Z-Buffer相关算法在窗口程序中展示，使用make编译并运行，目前支持MacOS和Windows平台。本程序**未使用多线程或者GPU加速**，编译使用参数为`-std=c++17 -O3`，如果需要编译参数可以修改makefile文件：
 
-1. Compile in zsh `make`
-2. Compile and Run `make run`
+**MacOS**
 
-Windows
+Compile in zsh `make`
+
+**Windows**
 
 1. Install MinGW https://www.mingw-w64.org/
 2. Compile in cmd `mingw32-make`
-3. Compile and Run `mingw32-make run`
 
+## 运行程序
 
-## 性能测试
+编译后使用命令行选择需要加载的模型和绘制模式：
 
-绘制相同的场景下，**实际光栅化的三角形数**：
+MacOS:
 
-| N | 10 | 20 | 50 | 100 | 500 |
-| --- | --- | --- | --- | --- | --- |
-| 总三角形数 | 1054080 | 2108160 | 5270400 | 10540800 | 52704000 |
-| 普通Z-Buffer | 361744 | 703562 | 1593262 | 2679368 | 4571622 |
-| 层次Z-Buffer | 130644 | 187236 | 273096 | 359554 | 588452 |
-| 剔除百分比（相对于普通Z-Buffer） | 63.8% | 73.4% | 82.9% | 86.6% | 87.1% |
+示例：
 
-下面是使用Orthogonal投影，-O3编译结果，绘制5\*5\*N个spot模型并且使用正交投影：
+```shell
+./viewer -i meshes/spot.obj
+./viewer -i meshes/spot.obj -c 3 3
+./viewer -i meshes/spot.obj -c 3 3 -z hiez
+./viewer -i meshes/spot.obj -c 5 3 -z scanline -p o -m b 10
+```
 
-| N | 20 | 50 | 100 | 200 | 400 |
-| --- | --- | --- | --- | --- | --- |
-| 普通Z-Buffer | 144.598ms | 341.896ms | 700.132ms | 1352.11ms | 2801.64ms |
-| 层次Z-Buffer | 85.1411ms | 200.048ms | 389.271ms | 761.57ms | 1555.26ms |
-| 加速比 | 1.70x | 1.71x | 1.80x | 1.78x | 1.80x |
+Windows:
+
+示例：
+
+```shell
+viewer.exe -i meshes/spot.obj
+```
+
+启动参数：
+
+- `-i` 需要加载的模型（必填）
+- `-z` 需要使用的Z-Buffer算法
+  - `simple` 简单Z-Buffer算法（默认）
+  - `scanline` 扫描线Z-Buffer算法
+  - `hiez` 层次Z-Buffer算法
+  - `octz` 空间八叉树加速的Z-Buffer算法
+- `-c` 绘制数量：
+  - `1 n` 绘制1\*1\*n模型（默认 1 1）
+  - `3 n` 绘制3\*3\*n个模型
+  - `5 n` 绘制5\*5\*n个模型
+- `-m` 模式：
+  - `r` 实时模式（默认）
+  - `b n` Benchmark模式，运行n次并计时
+- `-p` 投影模式：
+  - `p` 透视投影（默认）
+  - `o` 正交投影
+
+## 窗口操作指南
+
+鼠标拖拽：旋转视角
+
+鼠标滚轮：在透视投影下调整FOV
+
+空格键：重置视角
+
+ESC键：退出程序

@@ -8,7 +8,7 @@
 ## Compiler settings.
 CC     := g++
 CLANG  := clang++
-CFLAGS := -std=c++17 $(EXTRA) -O3 # -Og -Wall -Wextra
+CFLAGS := -std=c++17 -O3 # -Og -Wall -Wextra
 ## Basic settings.
 TARGET   := viewer
 BUILDDIR := build

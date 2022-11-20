@@ -9,22 +9,13 @@
 #include "octree.h"
 #include "timer.h"
 
-#if defined(BENCHMARK)
-long g_counter = 0;
-double g_octree_time = 0.0;
-double g_render_time = 0.0;
-long g_total_octree = 0;
-#endif
-
 struct ZBOctree {
     int width;
     int height;
     HierarchicalZBuffer depth;
     Octree* octree;
-    bool refresh = true;
-#if defined(BENCHMARK)
-    Timer timer0, timer1;
-#endif
+    std::vector<Octree*> octree_cache;
+    bool fixed = false;
 
     ZBOctree(int w, int h)
         : width(w)
@@ -40,22 +31,14 @@ struct ZBOctree {
         depth.clear(1.0f);
     }
     
-    void clearOctree() {
-        if (octree)
-            delete octree;
-        octree = nullptr;
-    }
-
     void drawMesh(TriangleMesh const& mesh,
                   std::vector<colorf> const& colors,
                   float4x4 const& mvp,
                   Image & image,
+                  unsigned int transform_id = 0,
                   bool display_octree = false,
                   colorf const& octree_color = colorf(1.0f)) {
         
-#if defined(BENCHMARK)
-        timer0.update();
-#endif
         std::vector<float3> ndc;
         float3 min = float3(std::numeric_limits<float>::max());
         float3 max = float3(std::numeric_limits<float>::min());
@@ -76,13 +59,19 @@ struct ZBOctree {
          || min.y > 1 || max.y < -1 
          || min.z > 1 || max.z <  0 ) return;
 
-#if defined(BENCHMARK)
-        timer1.update();
-#endif
-        // Additional pass to build octree.
-        if (octree && refresh) {
+
+        if (octree && !fixed) {
             delete octree; // Delete previous octree.
             octree = nullptr;
+        }
+        else if (fixed) {
+            octree = nullptr;
+            if (octree_cache.size() <= transform_id) {
+                octree_cache.resize(transform_id + 1, nullptr);
+            }
+            if (octree_cache[transform_id]) {
+                octree = octree_cache[transform_id];
+            }
         }
 
         if (!octree) {
@@ -96,31 +85,21 @@ struct ZBOctree {
             }
         }
 
-#if defined(BENCHMARK)
-        timer1.update();
-        g_octree_time += timer1.deltaTime();
-#endif
+        if (fixed) {
+            octree_cache[transform_id] = octree;
+        }
 
         drawOctree(octree, colors, image);
 
         if (display_octree) {
             octree->drawWireframe(image, octree_color);
         }
-#if defined(BENCHMARK)
-        timer0.update();
-        g_render_time += timer0.deltaTime();
-        g_counter++;
-#endif
     }
 
 public:
     void drawOctree(Octree * tree,
                     std::vector<colorf> const& colors,
                     Image & image) {
-
-#if defined(BENCHMARK)
-        g_total_octree++;
-#endif
 
         if (!tree) return;
 
