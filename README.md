@@ -18,26 +18,44 @@
 
 多边形扫描转换的实现位于`polygon_scanline.cpp`文件中，通过如下指令编译并运行后结果将储存为文件名为`result.png`的图像：
 
-```shell
+MacOS:
+
+```
 g++ -std=c++17 -Og polygon_scanline.cpp -o out && ./out
+```
+
+Windows:
+
+```
+g++ -std=c++17 -Og polygon_scanline.cpp -o out && out.exe
 ```
 
 ### Z-Buffer
 
-Z-Buffer相关算法在窗口程序中展示，使用make编译并运行，目前支持MacOS和Windows平台。本程序**未使用多线程或者GPU加速**，编译使用参数为`-std=c++17 -O3`，如果需要编译参数可以修改makefile文件：
+Z-Buffer相关算法在窗口程序中展示，提供`makefile`和`.sln`编译并运行，目前支持MacOS和Windows（Win32）平台。本程序**未使用多线程或者GPU加速**，编译使用的参数为`-std=c++17 -O3`，如果需要贴调整编译参数可以查看并修改makefile文件：
 
 **MacOS**
 
-Compile in zsh `make`
+1. 在根目录下打开Terminal或者`cd 根目录`
+2. `make`
 
 **Windows**
 
-1. Install MinGW https://www.mingw-w64.org/
-2. Compile in cmd `mingw32-make`
+使用Visual Studio编译：
+
+1. 用Visual Studio打开`Z-Buffer.sln`，推荐使用Visual Studio 2019或以上版本
+2. 使用Ctrl+B编译，或者菜单栏-Build-Build Z-Buffer
+3. 编译结果将被拷贝到根目录下，文件名`viewer.exe`
+
+使用MinGW编译：
+
+1. 安装MinGW https://sourceforge.net/projects/mingw/ 选择合适的版本安装，并将`mingw64/bin`添加到**环境变量**
+2. 打开CMD，`cd 根目录`
+3. `mingw32-make`
 
 ## 运行程序
 
-编译后使用命令行选择需要加载的模型和绘制模式：
+编译后使用**命令行**选择需要加载的模型和绘制模式：
 
 MacOS:
 
@@ -46,8 +64,8 @@ MacOS:
 ```shell
 ./viewer -i meshes/spot.obj
 ./viewer -i meshes/spot.obj -c 3 3
-./viewer -i meshes/spot.obj -c 3 3 -z hiez
-./viewer -i meshes/spot.obj -c 5 3 -z scanline -p o -m b 10
+./viewer -i meshes/spot.obj -c 3 3 -z octz
+./viewer -i meshes/spot.obj -c 5 3 -z hiez -p o -m b 10
 ```
 
 Windows:
@@ -56,9 +74,12 @@ Windows:
 
 ```shell
 viewer.exe -i meshes/spot.obj
+viewer.exe -i meshes/spot.obj -c 3 3
+viewer.exe -i meshes/spot.obj -c 3 3 -z octz
+viewer.exe -i meshes/spot.obj -c 5 3 -z hiez -p o -m b 10
 ```
 
-启动参数：
+### 启动参数
 
 - `-i` 需要加载的模型（必填）
 - `-z` 需要使用的Z-Buffer算法
