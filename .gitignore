@@ -43,3 +43,6 @@ build/
 # Results
 *.jpg
 *.png
+.vs/
+*.vcxproj.user
+*.vcxproj.filters
