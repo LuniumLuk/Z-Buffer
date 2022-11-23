@@ -4,6 +4,7 @@
 // Vectors are column vectors.
 
 #include <cmath>
+#include <cassert>
 #include <algorithm>
 
 template<typename T>

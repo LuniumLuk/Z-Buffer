@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include <cstring>
 
 enum struct DrawMode {
     Single,
@@ -67,58 +68,58 @@ bool parse(int argc, char* argv[], Arguments * args) {
     bool has_model = false;
     int i = 1;
     while (i < argc) {
-        if (strcmp(argv[i], "-i") == 0 && (i < argc - 1)) {
+        if (std::strcmp(argv[i], "-i") == 0 && (i < argc - 1)) {
             has_model = true;
             args->model = std::string(argv[i + 1]);
             i += 2;
         }
-        else if (strcmp(argv[i], "-z") == 0 && (i < argc - 1)) {
+        else if (std::strcmp(argv[i], "-z") == 0 && (i < argc - 1)) {
             i += 1;
-            if (strcmp(argv[i], "simple") == 0) {
+            if (std::strcmp(argv[i], "simple") == 0) {
                 args->algorithm = ZBufferAlgorithm::SimpleZBuffer;
                 i += 1;
             }
-            else if (strcmp(argv[i], "scanline") == 0) {
+            else if (std::strcmp(argv[i], "scanline") == 0) {
                 args->algorithm = ZBufferAlgorithm::ScanlineZBuffer;
                 i += 1;
             }
-            else if (strcmp(argv[i], "hiez") == 0) {
+            else if (std::strcmp(argv[i], "hiez") == 0) {
                 args->algorithm = ZBufferAlgorithm::HierarchicalZBuffer;
                 i += 1;
             }
-            else if (strcmp(argv[i], "octz") == 0) {
+            else if (std::strcmp(argv[i], "octz") == 0) {
                 args->algorithm = ZBufferAlgorithm::OctreeZBuffer;
                 i += 1;
             }
-            else if (strcmp(argv[i], "octzf") == 0) {
+            else if (std::strcmp(argv[i], "octzf") == 0) {
                 args->algorithm = ZBufferAlgorithm::OctreeZBufferFixed;
                 i += 1;
             }
         }
-        else if (strcmp(argv[i], "-c") == 0 && (i < argc - 2)) {
+        else if (std::strcmp(argv[i], "-c") == 0 && (i < argc - 2)) {
             args->draw_count[0] = atoi(argv[i + 1]);
             args->draw_count[1] = atoi(argv[i + 2]);
             i += 3;
         }
-        else if (strcmp(argv[i], "-m") == 0 && (i < argc - 1)) {
+        else if (std::strcmp(argv[i], "-m") == 0 && (i < argc - 1)) {
             i += 1;
-            if (strcmp(argv[i], "r") == 0 && (i < argc)) {
+            if (std::strcmp(argv[i], "r") == 0 && (i < argc)) {
                 args->render_mode = RenderMode::RealTime;
                 i += 1;
             }
-            else if (strcmp(argv[i], "b") == 0 && (i < argc - 1)) {
+            else if (std::strcmp(argv[i], "b") == 0 && (i < argc - 1)) {
                 args->render_mode = RenderMode::Benchmark;
                 args->render_count = atoi(argv[i + 1]);
                 i += 2;
             }
         }
-        else if (strcmp(argv[i], "-p") == 0 && (i < argc - 1)) {
+        else if (std::strcmp(argv[i], "-p") == 0 && (i < argc - 1)) {
             i += 1;
-            if (strcmp(argv[i], "p") == 0 && (i < argc)) {
+            if (std::strcmp(argv[i], "p") == 0 && (i < argc)) {
                 args->proj_mode = ProjectionMode::Perspective;
                 i += 1;
             }
-            else if (strcmp(argv[i], "o") == 0 && (i < argc)) {
+            else if (std::strcmp(argv[i], "o") == 0 && (i < argc)) {
                 args->proj_mode = ProjectionMode::Orthogonal;
                 i += 1;
             }

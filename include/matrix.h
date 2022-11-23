@@ -4,6 +4,7 @@
 // Matrix is implemented as column major.
 
 #include "vector.h"
+#include <cassert>
 #include <cmath>
 
 template<typename T>

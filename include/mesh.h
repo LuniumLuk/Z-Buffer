@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <cstring>
 #include "vector.h"
 
 #define MAX_LINE_NUM 256
