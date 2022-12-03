@@ -1,3 +1,4 @@
+#if __APPLE__
 #include "Cocoa/Cocoa.h"
 #include <mach-o/dyld.h>
 #include <mach/mach_time.h>
@@ -377,3 +378,4 @@ LuGL::Time LuGL::getSystemTime()
 
     return time;
 }
+#endif
